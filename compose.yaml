@@ -1,0 +1,83 @@
+name: accountingsystem
+services:
+
+  backend:
+    container_name: backend
+    build:
+      context: ./
+      dockerfile: ./backend.Dockerfile
+    image: backend:latest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5433/accountingsystem
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgrespassword
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+
+  db:
+    container_name: db
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: accountingsystem
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      PGPORT: 5433
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    ports:
+      - "5433:5433"
+
+  pgadmin:
+    image: dpage/pgadmin4:2023-11-20-2
+    container_name: pgadmin
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=postgres@example.com
+      - PGADMIN_DEFAULT_PASSWORD=postgres
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+    ports:
+      - "80:80"
+    entrypoint: /bin/sh -c "chmod 600 /pgpass; /entrypoint.sh;"
+    user: root
+    configs:
+      - source: servers.json
+        target: /pgadmin4/servers.json
+      - source: pgpass
+        target: /pgpass
+    volumes:
+      - pgadmindata:/var/lib/pgadmin
+
+configs:
+  pgpass:
+    content: db:5433:*:postgres:postgrespassword
+  servers.json:
+    content: |
+      {"Servers": {"1": {
+        "Group": "Servers",
+        "Name": "My Local Postgres",
+        "Host": "db",
+        "Port": 5433,
+        "MaintenanceDB": "postgres",
+        "Username": "postgres",
+        "PassFile": "/pgpass",
+        "SSLMode": "prefer"
+      }}}
+
+volumes:
+  pgdata:
+  pgadmindata:

@@ -1,0 +1,30 @@
+######################
+# Intellij
+######################
+.idea/
+
+######################
+# Visual Studio Code
+######################
+.vscode/
+
+######################
+# Maven
+######################
+/target/
+
+######################
+# Maven Wrapper
+######################
+!.mvn/wrapper/maven-wrapper.jar
+
+######################
+# Other configs
+######################
+# TODO: Save files to git before publishing
+# TODO: Check Readme.md logo link
+# Ignore everything in the target directory
+#/src/main/java/com/company/accountingsystem/fms/*
+
+# Allow the config directory and its contents
+!/src/main/java/com/company/accountingsystem/fms/config/
